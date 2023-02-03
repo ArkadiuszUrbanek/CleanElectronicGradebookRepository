@@ -1,0 +1,53 @@
+<app-navbar></app-navbar>
+<app-dialog></app-dialog>
+
+<div class="container"
+     infiniteScroll
+     [infiniteScrollThrottle]="150"
+     [scrollWindow]="true"
+     (scrolled)="onScrollDown()"
+>
+    <div *ngFor="let post of posts"
+          class="card mt-4"
+    >
+        <div class="card-body d-flex flex-column">
+            <div class="d-flex">
+                <div class="d-block">
+                    <p class="card-text" style="font-weight: bold; margin: 0">{{ post.author.firstName }} {{ post.author.lastName }}</p>
+                    <p style="margin-top: 0;">{{ timeAgo(post.creationDate) }}</p>
+                </div>
+                <div style="margin-left: auto;" *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher">
+                    <button type="button" style="margin-right: 0;" class="btn btn-warning bi bi-pencil-square text-dark text-start rounded-pill mx-1" (click)="onEditButtonClicked(post)"> Edytuj</button>
+                    <button type="button" style="margin-right: 0;" class="btn btn-danger bi bi-dash-square text-dark text-start rounded-pill" (click)="onRemoveButtonClicked(post.id)"> Usuń</button>
+                </div>
+            </div>
+            <p style="white-space: pre-wrap">{{ post.contents }}</p>
+            <div class="btn-group align-self-center" style="width: fit-content;">
+                <button class="btn btn-outline-dark btn-rounded-circle bi"
+                        [class]="post.currentUserReaction !== undefined && post.currentUserReaction === PostReactionEnum.Dislike ? 'bi-hand-thumbs-down-fill' : 'bi-hand-thumbs-down'"
+                        style="border-radius: 20px 0 0 20px;"
+                        [matTooltip]="post.currentUserReaction !== undefined && post.currentUserReaction === PostReactionEnum.Dislike ? 'Usuń głos' : 'To mi się nie podoba'"
+                        matTooltipPosition="below"
+                        (click)="onDislikeButtonClicked(post.id, post.currentUserReaction)"
+                > {{ post.usersReactions["Dislike"] }}</button>
+                <button class="btn btn-outline-dark btn-rounded-circle bi"
+                        [class]="post.currentUserReaction !== undefined && post.currentUserReaction === PostReactionEnum.Like ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up'"
+                        style="border-radius: 0 20px 20px 0;"
+                        [matTooltip]="post.currentUserReaction !== undefined && post.currentUserReaction === PostReactionEnum.Like ? 'Usuń głos' : 'To mi się podoba'"
+                        matTooltipPosition="below"
+                        (click)="onLikeButtonClicked(post.id, post.currentUserReaction)"
+                > {{ post.usersReactions["Like"] }}</button>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher" 
+         style="position: fixed; bottom: 50px; right: 50px">
+        <button 
+            type="button" 
+            class="btn btn-outline-dark rounded-pill bi bi-plus-square"
+            (click)="onAddButtonClicked()"
+        >
+            Dodaj
+        </button>
+    </div>
+</div>

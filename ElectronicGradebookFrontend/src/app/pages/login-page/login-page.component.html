@@ -1,0 +1,64 @@
+<div class="position-absolute top-50 start-50 translate-middle">
+  <div class="container border rounded p-2">
+      <form #loginForm="ngForm" class="" autocomplete="off" (ngSubmit)="onSubmit(loginForm.value)">
+        <div class="row mt-1 mb-1 text-center fs-3">
+        <header>Logowanie</header>
+      </div>
+      <div class="row-12 mt-2 mb-1 text-center">
+        <div 
+          class="d-flex border rounded-pill fs-3"
+          [ngClass]="{ 'border-success': email.valid, 'border-danger': email.touched && email.invalid }"
+        >
+          <i 
+            class="bi bi-envelope ms-3"
+          ></i>
+          <input 
+            type="email" 
+            class="form-control shadow-none border border-0 rounded-pill bg-transparent mx-0"
+            [ngClass]="{ 'is-valid': email.valid, 'is-invalid': email.touched && email.invalid }"
+            placeholder="Adres email*" 
+            name="email" 
+            ngModel 
+            #email="ngModel"
+            required
+            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"
+          />
+        </div>
+        <div *ngIf="email.touched">
+          <div *ngIf="email.errors?.['required']" class="text-danger">To pole jest wymagane!</div>
+          <div *ngIf="email.errors?.['pattern']" class="text-danger">Wpisany ciąg znaków nie jest poprawnym adresem email!</div>
+        </div>
+      </div>
+      <div class="row-12 mt-1 mb-1 text-center">
+        <div 
+          class="d-flex border rounded-pill fs-3"
+          [ngClass]="{ 'border-success': password.valid, 'border-danger': password.touched && password.invalid }"
+        >
+          <i 
+            class="bi ms-3"
+            [ngClass]="{ 'bi-lock': isPasswordVisible === false, 'bi-unlock': isPasswordVisible === true }" 
+            (click)="switchPasswordVisibility()"
+          ></i>
+          <input 
+            [type]="isPasswordVisible === true ? 'text' : 'password'" 
+            class="form-control shadow-none border border-0 rounded-pill bg-transparent mx-0" 
+            [ngClass]="{ 'is-valid': password.valid, 'is-invalid': password.touched && password.invalid }"
+            placeholder="Hasło*" 
+            name="password" 
+            ngModel 
+            #password="ngModel"
+            required
+          />
+        </div>
+        <div *ngIf="password.touched && password.errors?.['required']" class="text-danger">To pole jest wymagane!</div>
+      </div>
+      <div class="row-12 mt-2 mb-1 text-center">
+          <button 
+            type="submit" 
+            class="btn btn-dark border rounded-pill"
+            [disabled]="loginForm.invalid">Zaloguj się
+          </button>
+      </div>
+    </form>
+  </div>
+</div>

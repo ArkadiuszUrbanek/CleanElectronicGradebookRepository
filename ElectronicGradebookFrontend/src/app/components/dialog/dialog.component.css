@@ -1,0 +1,8 @@
+.modal.show {
+    display: flex !important;
+    justify-content: center;
+}
+  
+.modal-dialog {
+    align-self: center;
+}

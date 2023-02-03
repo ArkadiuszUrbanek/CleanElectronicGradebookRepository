@@ -1,0 +1,32 @@
+<h2 mat-dialog-title style="text-align: center;">{{ data.title }}</h2>
+<mat-dialog-content style="overflow: hidden">
+  <form [formGroup]="myForm" autocomplete="off" (ngSubmit)="onSubmit()">
+    <mat-form-field style="width: 100%;">
+      <mat-label>Widoczność</mat-label>
+      <mat-select multiple required [formControl]="authorizedRoles">
+        <mat-option [value]="UserRoleEnum.Admin" disabled>Administratorzy</mat-option>
+        <mat-option [value]="UserRoleEnum.Teacher">Nauczyciele</mat-option>
+        <mat-option [value]="UserRoleEnum.Parent">Rodzice</mat-option>
+        <mat-option [value]="UserRoleEnum.Pupil">Uczniowie</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field style="width: 100%;">
+      <mat-label>Opis</mat-label>
+      <textarea 
+          matInput
+          required
+          cdkTextareaAutosize
+          cdkAutosizeMinRows="1"
+          [formControl]="contents"
+          autocomplete="off"
+      ></textarea>
+      <mat-error *ngIf="contents.hasError('maxlength')">
+          <strong>Treść wpisu nie może składać się z więcej niż 1000 znaków!</strong>
+      </mat-error>
+      <mat-error *ngIf="contents.hasError('required')">
+          <strong>Treść wpisu nie może być pusta!</strong>
+      </mat-error>
+    </mat-form-field>
+    <button type="submit" class="btn btn-outline-dark rounded-pill" style="float: right" [disabled]="myForm.invalid">Zapisz</button>
+  </form>
+</mat-dialog-content>

@@ -1,0 +1,22 @@
+/* .my-custom-class { background-color:rgb(225, 30, 30); color:white } */
+/*::ng-deep .popover {*/
+    /* border-radius: 0; */
+    /* text-align: center; */
+    /* border: solid black 1px */
+  /*}*/
+
+/*::ng-deep .popover-header {*/
+    /* border-radius: 0; */
+    /* background-color: #aebcad; */
+  /*}*/
+
+/*::ng-deep .popover-body {*/
+    /* display: flex; */
+    /* flex-direction: column; */
+
+    /* border-radius: 0; */
+    /* background-color: white; */
+    /* white-space: pre; */
+   /*} */
+
+  /* :host */

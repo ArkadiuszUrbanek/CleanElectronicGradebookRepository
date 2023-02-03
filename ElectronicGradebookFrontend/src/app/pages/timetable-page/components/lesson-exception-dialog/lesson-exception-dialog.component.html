@@ -1,0 +1,36 @@
+<h2 mat-dialog-title style="text-align: center;">Planer</h2>
+<mat-dialog-content style="overflow: hidden">
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+        <mat-form-field style="width: 100%">
+            <mat-label>Status lekcji</mat-label>
+            <mat-select required formControlName="lessonStatus">
+              <mat-option [value]="LessonStatusEnum.AsPlanned">Zgodnie z planem</mat-option>
+              <mat-option [value]="LessonStatusEnum.Substitution">Zastępstwo</mat-option>
+              <mat-option [value]="LessonStatusEnum.Cancelled">Odwołana</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <ng-container *ngIf="selectedStatus === LessonStatusEnum.Substitution">
+          <mat-form-field style="width: 100%">
+            <mat-label>Nauczyciel zastępca</mat-label>
+            <input type="text"
+                   spellcheck="false"
+                   [matAutocomplete]="teacherSubstitutorAutocomplete"
+                   matInput
+                   formControlName="teacherSubstitutor"
+                   required>
+            <button mat-button *ngIf="teacherSubstitutor.value" matSuffix mat-icon-button aria-label="Clear" (click)="teacherSubstitutor.setValue('')">
+              <mat-icon>close</mat-icon>
+            </button>
+            <mat-autocomplete #teacherSubstitutorAutocomplete="matAutocomplete" [displayWith]="getTeacherName">
+              <mat-option *ngFor="let teacher of filteredTeachers" [value]="teacher">
+                {{ teacher.firstName + ' ' + teacher.lastName }}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="teacherSubstitutor.hasError('invalidAutocompleteObject')">
+              <strong>Nie wybrano nauczyciela zastępcy z listy dostępnych nauczycieli!</strong>
+            </mat-error>
+          </mat-form-field>
+        </ng-container>
+        <button class="btn btn-outline-dark rounded-pill" style="float: right" type="submit" [disabled]="myForm.invalid" >Zapisz</button>
+    </form>
+</mat-dialog-content>

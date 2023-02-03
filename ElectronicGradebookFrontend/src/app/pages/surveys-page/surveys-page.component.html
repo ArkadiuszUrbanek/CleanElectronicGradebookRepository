@@ -1,0 +1,91 @@
+<app-navbar></app-navbar>
+<div class="container d-flex flex-column align-items-center">
+  <button *ngIf="userRole === RoleEnum.Admin || userRole === RoleEnum.Teacher" 
+          type="button"
+          class="btn btn-dark rounded rounded-pill align-self-end mt-1 bi bi-clipboard-plus"
+          [routerLink]="'/survey/create'"
+  > 
+    Utwórz nową ankietę
+  </button>
+  <table class="table table-hover mt-1">
+      <thead class="table-secondary">
+        <tr class="noselect">
+          <th 
+            scope="col"
+            style="word-wrap: break-word; max-width: 150px; text-align: center"
+            class="pointer text-nowrap"
+            [ngClass]="{ 'active': sortBy === SurveySortablePropertiesEnum.Name, 'desc': order === OrderEnum.Descending, 'asc': order === OrderEnum.Ascending}"
+            (click)="sort(SurveySortablePropertiesEnum.Name)"
+          >
+            Tytuł
+          </th>
+          <th 
+            scope="col"
+            style="word-wrap: break-word; max-width: 150px; text-align: center"
+            class="pointer text-nowrap"
+            [ngClass]="{ 'active': sortBy === SurveySortablePropertiesEnum.AuthorFullName, 'desc': order === OrderEnum.Descending, 'asc': order === OrderEnum.Ascending}"
+            (click)="sort(SurveySortablePropertiesEnum.AuthorFullName)"
+          >
+            Autor
+          </th>
+          <th 
+            scope="col"
+            style="word-wrap: break-word; max-width: 150px; text-align: center"
+            class="pointer text-nowrap"
+            [ngClass]="{ 'active': sortBy === SurveySortablePropertiesEnum.CreationDate, 'desc': order === OrderEnum.Descending, 'asc': order === OrderEnum.Ascending}"
+            (click)="sort(SurveySortablePropertiesEnum.CreationDate)"
+          >
+            Utworzono
+          </th>
+          <th 
+            scope="col"
+            style="word-wrap: break-word; max-width: 150px; text-align: center"
+            class="pointer text-nowrap"
+            [ngClass]="{ 'active': sortBy === SurveySortablePropertiesEnum.ExpirationDate, 'desc': order === OrderEnum.Descending, 'asc': order === OrderEnum.Ascending}"
+            (click)="sort(SurveySortablePropertiesEnum.ExpirationDate)"
+          >
+            Wygasa
+          </th>
+          <th style="word-wrap: break-word; max-width: 150px; text-align: center">
+            Akcje
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let survey of surveys">
+          <td style="word-wrap: break-word; max-width: 150px; text-align: center">{{ survey.name }}</td>
+          <td style="word-wrap: break-word; max-width: 150px; text-align: center">{{ survey.author.firstName }} {{ survey.author.lastName }}</td>
+          <td style="word-wrap: break-word; max-width: 150px; text-align: center">{{ survey.creationDate | date: 'd MMMM y HH:mm:ss':'':'pl' }}</td>
+          <td style="word-wrap: break-word; max-width: 150px; text-align: center">{{ survey.expirationDate | date: 'd MMMM y HH:mm:ss':'':'pl' }}</td>
+          <td style="word-wrap: break-word; max-width: 150px; text-align: center">
+            <button 
+              *ngIf="userRole === RoleEnum.Admin || (userRole === RoleEnum.Teacher && survey.author.id === userId)" 
+              class="btn btn-outline-secondary rounded rounded-pill text-nowrap"
+              (click)="viewResults(survey.id)"
+            >
+              Zobacz wyniki
+            </button>
+            <button 
+              *ngIf="(userRole === RoleEnum.Teacher && survey.author.id !== userId) || userRole === RoleEnum.Parent || userRole === RoleEnum.Pupil" 
+              class="btn btn-outline-secondary rounded rounded-pill text-nowrap"
+              (click)="openDialog(survey.id)"
+            >
+              Wypełnij
+            </button>
+          </td>
+        </tr>
+      </tbody>
+  </table>
+  <ul class="pagination noselect">
+    <li class="page-item" (click)="switchPage(currentPageNumber - 1)"><a class="page-link"><span>&laquo;</span></a></li>
+    <li 
+      *ngxRange="let pageNumber from 1 to totalNumberOfPages + 1 by 1" 
+      class="page-item" 
+      [ngClass]="{ 'active' : pageNumber === currentPageNumber }"
+      (click)="switchPage(pageNumber)"
+    >
+      <a class="page-link ms-1 rounded">{{ pageNumber }}</a>
+    </li>
+    <li class="page-item ms-1" (click)="switchPage(currentPageNumber + 1)"><a class="page-link"><span>&raquo;</span></a></li>
+  </ul>
+<div>

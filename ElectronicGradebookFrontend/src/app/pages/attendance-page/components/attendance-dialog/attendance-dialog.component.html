@@ -1,0 +1,40 @@
+<h2 mat-dialog-title style="text-align: center;">{{ data.title }}</h2>
+<mat-dialog-content style="overflow: hidden">
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+        <mat-form-field style="width: 100%">
+          <mat-label>Przedmiot</mat-label>
+          <input type="text"
+                 spellcheck="false"
+                 [matAutocomplete]="subjectAutocomplete"
+                 matInput
+                 [formControl]="subject"
+                 required>
+          <button mat-button *ngIf="subject.value" matSuffix mat-icon-button aria-label="Clear" (click)="subject.setValue('')">
+            <mat-icon>close</mat-icon>
+          </button>
+          <mat-autocomplete #subjectAutocomplete="matAutocomplete" [displayWith]="getSubjectName">
+            <mat-option *ngFor="let subject of filteredSubjects" [value]="subject">
+              {{ subject.name }}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="subject.hasError('invalidAutocompleteObject')">
+              <strong>Nie wybrano przedmiotu z listy dostępnych przedmiotów!</strong>
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field style="width: 100%">
+          <mat-label>Rodzaj</mat-label>
+          <mat-select [formControl]="type" required>
+            <mat-option [value]="AttendanceTypeEnum.Present">Obecność</mat-option>
+            <mat-option [value]="AttendanceTypeEnum.Absent">Nieobecność</mat-option>
+            <mat-option [value]="AttendanceTypeEnum.Late">Spóźnienie</mat-option>
+            <mat-option [value]="AttendanceTypeEnum.Excused">Zwolnienie</mat-option>
+            <mat-option [value]="AttendanceTypeEnum.ExcusedAbsence">Nieobecność usprawiedliwiona</mat-option>
+          </mat-select>
+          <mat-error *ngIf="type.hasError('required')">
+              <strong>Podanie rodzaju frekwencji jest wymagane!</strong>
+          </mat-error>
+        </mat-form-field>
+        <button class="btn btn-outline-dark rounded-pill" style="float: right" type="submit" [disabled]="myForm.invalid">Zapisz</button>
+        <button *ngIf="data.selectedSubjectId !== undefined && data.selectedType !== undefined" (click)="matDialogRef.close(null)" class="btn btn-outline-dark rounded-pill me-1" style="float: right" type="button">Usuń</button>
+    </form>
+</mat-dialog-content>

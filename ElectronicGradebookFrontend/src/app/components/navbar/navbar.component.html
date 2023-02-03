@@ -1,0 +1,23 @@
+<nav class="navbar sticky-top border border-0 justify-content-end">
+    <ng-container *ngFor="let visibleNavbarItem of visibleNavbarItems">
+    <div class="mx-2 text-center" style="margin-top: 0; margin-bottom: auto">
+            <button 
+                [routerLink]="visibleNavbarItem.path"
+                #rla="routerLinkActive" routerLinkActive [ngClass]="{ 'active': rla.isActive, 'notActive': !rla.isActive }" 
+                type="button" 
+                class="btn-circle btn-xl bi"
+                [class]="visibleNavbarItem.iconClass"
+            >
+            </button>
+            <small style="display: flex; justify-content: center; align-items: center; text-align: center; max-width: 70px;">{{visibleNavbarItem.bottomText}}</small>
+        </div>
+    </ng-container>
+    <div class="mx-2 text-center" style="margin-top: 0; margin-bottom: auto">
+        <button
+            class="btn-circle btn-xl bi bi-door-open notActive"
+            (click)="logout()"
+        >
+        </button>
+        <small style="display: flex; justify-content: center; align-items: center; text-align: center; max-width: 70px;">Wyloguj się</small>
+    </div>
+</nav>

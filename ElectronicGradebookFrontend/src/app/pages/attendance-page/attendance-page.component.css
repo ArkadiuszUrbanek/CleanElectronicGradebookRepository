@@ -1,0 +1,3 @@
+button.addButton:not(:hover) i{
+    opacity: 0;
+}

@@ -1,0 +1,178 @@
+<app-navbar></app-navbar>
+<div class="container-fluid">
+    <div class="my-3" style="position: relative; display: flex; flex-direction: row; justify-content: center; align-items: center">
+      <mat-form-field style="width: 70px; position: absolute; left: 0"
+                      *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher">
+        <mat-label>Klasa</mat-label>
+        <mat-select [ngModel]="selectedClassId" (ngModelChange)="displayAttendance($event)" required>
+          <mat-option *ngFor="let class of classes" [value]="class.id">
+            {{ class.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="btn-group">
+        <button type="button" class="btn btn-dark me-1" style="border-radius: 20px 0 0 20px;" (click)="decrementDate()"><i class="bi bi-caret-left"></i>Poprzedni tydzień</button><!-- [disabled]="isTimetableInitiallyLoading"-->
+        <button type="button" class="btn btn-dark" style="border-radius: 0 20px 20px 0;" (click)="incrementDate()">Następny tydzień<i class="bi bi-caret-right"></i></button><!--" [disabled]="isTimetableInitiallyLoading"-->
+      </div>
+    </div>
+
+    <div *ngIf="!isAttendanceInitiallyLoading" class="table-responsive">
+      <table class="table table-hover table-bordered">
+        <thead class="text-center">
+          <tr>
+            <th rowspan="2" style="vertical-align: middle; min-width: 150px">Imię i nazwisko</th>
+            <th><p class="m-0">Poniedziałek</p><p class="m-0">{{ workdaysDetails[WorkdayEnum.Monday].date | date: 'longDate':'':'pl' }}</p></th>
+            <th><p class="m-0">Wtorek</p><p class="m-0">{{ workdaysDetails[WorkdayEnum.Tuesday].date | date: 'longDate':'':'pl' }}</p></th>
+            <th><p class="m-0">Środa</p><p class="m-0">{{ workdaysDetails[WorkdayEnum.Wednesday].date | date: 'longDate':'':'pl' }}</p></th>
+            <th><p class="m-0">Czwartek</p><p class="m-0">{{ workdaysDetails[WorkdayEnum.Thursday].date | date: 'longDate':'':'pl' }}</p></th>
+            <th><p class="m-0">Piątek</p><p class="m-0">{{ workdaysDetails[WorkdayEnum.Friday].date | date: 'longDate':'':'pl' }}</p></th>
+          </tr>
+          <tr>
+            <td *ngxRange="let workdayNumber from 0 to workdaysDetails.length by 1" [style.min-width.px]="(27 + 5) * teachingHoursIds.length + 5">
+              <div *ngFor="let teachingHourId of teachingHoursIds; let isFirst = first"
+                   style="display: inline-block; text-align: center; width: 26px; height: 26px; background-color: white; border: solid black 1px;"
+                   [style.margin-left]="!isFirst ? '5px' : undefined"
+              >
+                {{ teachingHourId }}
+              </div>
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pupilWeeklyAttendancesDetails of pupilsWeeklyAttendancesDetails">
+            <td>
+              <div class="d-flex justify-content-conter align-items-center" style="column-gap: 5px;">
+              {{ pupilWeeklyAttendancesDetails.pupil.firstName }} {{ pupilWeeklyAttendancesDetails.pupil.lastName }}
+                <i *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher" 
+                   class="bi bi-bar-chart-line-fill" 
+                   style="margin-left: auto; margin-right: 0; cursor: pointer;"
+                   matTooltip="Pokaż wykres frekwencji ucznia"
+                   matTooltipPosition="below"
+                   (click)="showChart(pupilWeeklyAttendancesDetails.pupil.id)"
+                ></i>
+              </div>
+            </td>
+            <td *ngFor="let workdayDetails of workdaysDetails" class="text-center">
+              <ng-container *ngFor="let teachingHourId of teachingHoursIds; let isFirst = first">
+                <div *ngIf="pupilWeeklyAttendancesDetails.dailyAttendances[workdayDetails.workday]?.[teachingHourId] as attendanceDetails; else second"
+                     style="vertical-align: middle; display: inline-block; text-align: center; width: 26px; height: 26px; background-color: white; border: solid black 1px;"
+                     [style.margin-left]="!isFirst ? '5px' : undefined"
+                     [ngStyle]="getAttendanceColor(attendanceDetails.type)"
+                     [style.cursor]="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher ? 'pointer' : 'auto'"
+                     (click)="editOrDeleteAttendance(attendanceDetails.id, attendanceDetails.subject.id, attendanceDetails.type)"
+                     triggers="mouseenter:mouseleave"
+                     [ngbPopover]="popoverContent"
+                >
+                     {{ getAttendanceTypeSymbol(attendanceDetails.type) }}
+                     <ng-template #popoverContent>
+                      <p class="m-0">Data wystawienia: {{ attendanceDetails.issueDate | date: 'longDate':'':'pl' }}</p>
+                      <p class="m-0">Godzina wystawienia: {{ attendanceDetails.issueDate | date: 'mediumTime':'':'pl' }}</p>
+                      <p class="m-0">Przedmiot: {{ attendanceDetails.subject.name }}</p>
+                      <p class="m-0">Wystawca: {{ attendanceDetails.issuer.firstName }} {{ attendanceDetails.issuer.lastName }}</p>
+                      <p class="m-0">Typ: {{ getAttendanceTypeName(attendanceDetails.type) }}</p>
+                    </ng-template>
+                </div>
+                <ng-template #second>
+                  <div *ngIf="userRole === UserRoleEnum.Pupil || userRole === UserRoleEnum.Parent; else third"
+                       style="vertical-align: middle; display: inline-block; text-align: center; width: 26px; height: 26px; background-color: white; border: dashed black 1px;"
+                       [style.margin-left]="!isFirst ? '5px' : undefined"
+                  >
+                  </div>
+                </ng-template>
+                <ng-template #third>
+                  <button *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher"
+                          style="vertical-align: middle; padding: 0; display: inline-block; text-align: center; width: 26px; height: 26px; background-color: white; border: dashed black 1px;"
+                          [style.margin-left]="!isFirst ? '5px' : undefined"
+                          class="addButton"
+                          matTooltip="Dodaj"
+                          matTooltipPosition="below"
+                          (click)="addAttendance(workdayDetails.date, teachingHourId, pupilWeeklyAttendancesDetails.pupil.id)"
+                  >
+                    <i class="bi bi-plus-lg"></i>
+                  </button>
+                </ng-template>
+              </ng-container>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-flex justify-content-center">
+      <fieldset class="border rounded-3 px-3">
+        <legend class="float-none px-3 fs-6" style="font-weight: bold; margin-right: auto; margin-left: auto; margin-bottom: 0; width: auto">Legenda</legend>
+        <ul style="list-style: none; padding: 0; margin: 0; margin-bottom: 5px; margin-top: 5px;">
+          <li style="line-height: 26px; margin-bottom: 4px">
+            <span style="display: block;
+                         float: left;
+                         height: 26px;
+                         width: 26px;
+                         margin-right: 5px;
+                         border: 1px solid black;
+                         background-color: rgb(144, 226, 86);
+                         text-align: center;"
+            >
+              ob
+            </span>
+            Obecność
+          </li>
+          <li style="line-height: 26px; margin-bottom: 4px">
+            <span style="display: block;
+                         float: left;
+                         height: 26px;
+                         width: 26px;
+                         margin-right: 5px;
+                         border: 1px solid black;
+                         background-color: rgb(255, 82, 70);
+                         text-align: center;"
+            >
+              nb
+            </span>
+            Nieobecność
+          </li>
+          <li style="line-height: 26px; margin-bottom: 4px">
+          <span style="display: block;
+                       float: left;
+                       height: 26px;
+                       width: 26px;
+                       margin-right: 5px;
+                       border: 1px solid black;
+                       background-color: rgb(250, 153, 56);
+                       text-align: center;"
+          >
+            sp
+          </span>
+            Spóźnienie
+          </li>
+          <li style="line-height: 26px; margin-bottom: 4px">
+            <span style="display: block;
+                         float: left;
+                         height: 26px;
+                         width: 26px;
+                         margin-right: 5px;
+                         border: 1px solid black;
+                         background-color: rgb(171, 171, 171);
+                         text-align: center;"
+            >
+              zw
+            </span>
+            Zwolnienie
+          </li>
+          <li style="line-height: 26px;">
+            <span style="display: block;
+                         float: left;
+                         height: 26px;
+                         width: 26px;
+                         margin-right: 5px;
+                         border: 1px solid black;
+                         background-color: rgb(248, 238, 97);
+                         text-align: center;"
+            >
+              u
+            </span>
+            Nieobecność usprawiedliwiona
+          </li>
+        </ul>
+      </fieldset>
+    </div>
+</div>

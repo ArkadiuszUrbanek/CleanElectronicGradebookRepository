@@ -1,0 +1,4 @@
+<div class="m-4 d-flex justify-content-center align-items-center" style="height: 300px">
+    <canvas [ngStyle]="{ 'display': isDataMissing() ? 'none' : null }" #canvas></canvas>
+    <p class="text-center" *ngIf="isDataMissing()">Brak potrzebnych danych do wygenerowania wykresu</p>
+</div>

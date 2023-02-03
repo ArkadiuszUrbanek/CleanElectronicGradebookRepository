@@ -1,0 +1,163 @@
+<app-navbar></app-navbar>
+<div class="container">
+    <div class="my-3" style="display: flex; flex-direction: row; flex-wrap: wrap;">
+      <mat-form-field style="width: 70px; margin-bottom: -1.25em; align-self: flex-end;">
+        <mat-label>Klasa</mat-label>
+        <mat-select [ngModel]="selectedClassId" (ngModelChange)="displayTimetable($event)" required><!--(selectionChange)="displayTimetable($event.value)"-->
+          <mat-option *ngFor="let class of classes" [value]="class.id">
+            {{ class.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="btn-group" style="align-self: flex-end; margin-left: auto; margin-right: auto; flex-shrink: 0">
+        <button type="button" class="btn btn-dark me-1" style="border-radius: 20px 0 0 20px;" (click)="decrementDate()"><i class="bi bi-caret-left"></i>Poprzedni tydzień</button>
+        <button type="button" class="btn btn-dark" style="border-radius: 0 20px 20px 0;" (click)="incrementDate()">Następny tydzień<i class="bi bi-caret-right"></i></button>
+      </div>
+    </div>
+
+    <ng-container *ngIf="!isTimetableInitiallyLoading">
+      <div class="table-responsive">
+        <table class="table table-bordered text-nowrap" style="text-align: center">
+          <thead class="table-secondary">
+            <tr style="vertical-align: middle;">
+              <th scope="col" style="width: 150px; text-align: center;"><p class="m-0">Numer lekcji</p></th>
+              <th scope="col" style="width: 150px; text-align: center;"><p class="m-0">Godziny</p></th>
+              <th scope="col" style="width: 150px; text-align: center;"><p class="m-0">Poniedziałek</p><p class="m-0">{{ workdaysDetails[WorkdayEnum.Monday].date | date: 'longDate':'':'pl' }}</p></th>
+              <th scope="col" style="width: 150px; text-align: center;"><p class="m-0">Wtorek</p><p class="m-0">{{ workdaysDetails[WorkdayEnum.Tuesday].date | date: 'longDate':'':'pl' }}</p></th>
+              <th scope="col" style="width: 150px; text-align: center;"><p class="m-0">Środa</p><p class="m-0">{{ workdaysDetails[WorkdayEnum.Wednesday].date | date: 'longDate':'':'pl' }}</p></th>
+              <th scope="col" style="width: 150px; text-align: center;"><p class="m-0">Czwartek</p><p class="m-0">{{ workdaysDetails[WorkdayEnum.Thursday].date | date: 'longDate':'':'pl' }}</p></th>
+              <th scope="col" style="width: 150px; text-align: center;"><p class="m-0">Piątek</p><p class="m-0">{{ workdaysDetails[WorkdayEnum.Friday].date | date: 'longDate':'':'pl' }}</p></th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let teachingHourDetails of teachingHoursDetails; let i = index;">
+              <tr *ngIf="i > 0 && teachingHoursDetails[i - 1].endTime! < teachingHoursDetails[i].startTime">
+                <td></td>
+                <td>{{ teachingHoursDetails[i - 1].endTime | date: 'HH:mm' }} - {{ teachingHoursDetails[i].startTime | date: 'HH:mm' }}</td>
+                <td colspan="5">Przerwa</td>
+              </tr>
+              <tr style="height: 1px">
+                <td style="word-wrap: break-word; width: 150px; text-align: center; vertical-align: middle">{{ teachingHourDetails.id }}</td>
+                <td style="word-wrap: break-word; width: 150px; text-align: center; vertical-align: middle">{{ teachingHourDetails.startTime | date: 'HH:mm' }} - {{ teachingHourDetails!.endTime | date: 'HH:mm' }}</td>
+                <td *ngFor="let workdayDetails of workdaysDetails" 
+                    class="p-0" 
+                    style="word-wrap: break-word; width: 150px; text-align: center; height: inherit;">
+
+                  <div style="height: 100%; display: flex; align-items: center; justify-content: center;"
+                       class="p-2"
+                       *ngIf="userRole == UserRoleEnum.Admin && lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday] === undefined"
+                  >
+                  <button class="btn btn-outline-dark rounded rounded-pill"
+                          (click)="addLesson(teachingHourDetails.id, workdayDetails.workday)" 
+                  >
+                  <i class="bi bi-plus-square"></i> Dodaj</button>
+                  </div>
+                  
+
+                  <div *ngIf="lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday] !== undefined" 
+                       class="card rounded-0"
+                       style="height: 100%;"
+                       [ngClass]="{ 'bg-lesson-as-planned': lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.status === LessonStatusEnum.AsPlanned,
+                                    'bg-lesson-substitution': lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.status === LessonStatusEnum.Substitution,
+                                    'bg-lesson-cancelled': lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.status === LessonStatusEnum.Cancelled }">
+                    <div class="card-header rounded-0 p-0"
+                         [ngClass]="{ 'bg-dark-lesson-as-planned': lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.status === LessonStatusEnum.AsPlanned,
+                                      'bg-dark-lesson-substitution': lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.status === LessonStatusEnum.Substitution,
+                                      'bg-dark-lesson-cancelled': lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.status === LessonStatusEnum.Cancelled }"
+                         style="font-weight: 600;"
+                    >
+                      {{ lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.subject.name }}
+                    </div>
+                    <div class="card-body p-1 d-flex flex-column align-items-center">
+                      <p class="m-0" style="font-size: 14px">
+                        Prowadzący: {{ lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.teacher!.firstName }} {{ lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.teacher!.lastName }}
+                      </p>
+                      <p class="m-0" style="font-size: 14px" *ngIf="lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.status === LessonStatusEnum.Substitution">
+                        Zastępujący: {{ lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.substituteTeacher!.firstName }} {{ lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.substituteTeacher!.lastName }}
+                      </p>
+                      <p class="m-0" style="font-size: 14px">
+                        Sala: {{ lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.classroom!.id }}
+                      </p>
+                      <p class="m-0" style="font-size: 14px">
+                        Piętro: {{ lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.classroom!.floorNumber }}
+                      </p>
+                      
+                      <div style="margin-top: auto;">
+                      <button *ngIf="userRole == UserRoleEnum.Admin && lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday] !== undefined"
+                              class="btn btn-outline-dark p-0"
+                              style="border-radius: 50%; width: 35px; height: 35px"
+                              matTooltip="Edytuj"
+                              (click)="editLesson(lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.id,
+                                                  lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.subject.id,
+                                                  lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.teacher.id,
+                                                  lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.classroom.id)" 
+                      ><i class="bi bi-pencil-square"></i></button>
+                      <button *ngIf="userRole == UserRoleEnum.Admin && lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday] !== undefined"
+                              class="btn btn-outline-dark ms-1 p-0"
+                              style="border-radius: 50%; width: 35px; height: 35px"
+                              matTooltip="Usuń"
+                              (click)="deleteLesson(lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.id)" 
+                      ><i class="bi bi-dash-square"></i></button>
+                      <button *ngIf="userRole == UserRoleEnum.Admin && lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday] !== undefined"
+                              class="btn btn-outline-dark ms-1 p-0"
+                              style="border-radius: 50%; width: 35px; height: 35px"
+                              matTooltip="Zmień status"
+                              (click)="modifyLessonStatus(lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.id,
+                                                        workdayDetails.date,
+                                                        lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]!.status,
+                                                        lessonsDetails[teachingHourDetails.id - 1][workdayDetails.workday]?.substituteTeacher?.id ?? undefined)"
+                      ><i class="bi bi-calendar-event"></i></button>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+
+    <div class="d-flex justify-content-center">
+      <fieldset class="border rounded-3 px-3">
+        <legend class="float-none px-3 fs-6" style="font-weight: bold; margin-right: auto; margin-left: auto; margin-bottom: 0; width: auto">Legenda</legend>
+        <ul style="list-style: none; padding: 0; margin: 0; margin-bottom: 5px; margin-top: 5px;">
+          <li style="line-height: 26px; margin-bottom: 4px">
+            <span style="display: block;
+                         float: left;
+                         height: 26px;
+                         width: 26px;
+                         margin-right: 5px;
+                         border: 1px solid black;
+                         background-color: rgb(102, 179, 82);"
+            ></span>
+            Planowo
+          </li>
+          <li style="line-height: 26px; margin-bottom: 4px">
+            <span style="display: block;
+                         float: left;
+                         height: 26px;
+                         width: 26px;
+                         margin-right: 5px;
+                         border: 1px solid black;
+                         background-color: rgb(251, 230, 92);"
+            ></span>
+            Zastępstwo
+          </li>
+          <li style="line-height: 26px;">
+          <span style="display: block;
+                       float: left;
+                       height: 26px;
+                       width: 26px;
+                       margin-right: 5px;
+                       border: 1px solid black;
+                       background-color: rgb(243, 94, 94);"
+          ></span>
+            Odwołanie
+          </li>
+        </ul>
+      </fieldset>
+    </div>
+</div>
+
+<app-dialog></app-dialog>

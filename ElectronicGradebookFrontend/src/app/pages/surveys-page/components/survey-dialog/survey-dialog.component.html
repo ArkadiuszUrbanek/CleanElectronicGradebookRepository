@@ -1,0 +1,34 @@
+<h2 mat-dialog-title style="text-align: center;">{{ data.name }}</h2>
+<mat-dialog-content style="overflow: hidden">
+    <p style="text-align: justify;">{{ data.description }}</p>
+    <form [formGroup]="surveyFormGroup" (ngSubmit)="onSubmit()">
+        <mat-stepper orientation="vertical" labelPosition="bottom" #stepper>
+            <mat-step
+                *ngFor="let question of data.questions; let isLast = last; let isFirst = first"
+                [stepControl]="surveyFormGroup.get(question.id.toString())!"
+                errorMessage="Nie udzielono odpowiedzi!"
+            >
+                <ng-template matStepLabel>{{ question.contents }}</ng-template>
+
+                <ul class="list-unstyled" *ngIf="question.type === QuestionTypeEnum.MultipleChoice">
+                    <li *ngFor="let answer of question.answers">
+                        <mat-checkbox (change)="addAnswerToQuestion($event, question.id)" [value]="answer.id.toString()">{{ answer.contents }}</mat-checkbox>
+                    </li>
+                </ul>
+                <ul class="list-unstyled" *ngIf="question.type === QuestionTypeEnum.SingleChoice">
+                    <mat-radio-group [formControlName]="question.id">
+                        <li *ngFor="let answer of question.answers">
+                            <mat-radio-button [value]="answer.id.toString()">{{ answer.contents }}</mat-radio-button>
+                        </li>
+                    </mat-radio-group>
+                </ul>
+
+                <div>
+                    <button type="button" *ngIf="!isFirst" mat-button matStepperPrevious>Poprzednie pytanie</button>
+                    <button type="button" *ngIf="!isLast" mat-button matStepperNext>Następne pytanie</button>
+                    <button type="submit" *ngIf="isLast" [disabled]="surveyFormGroup.invalid" mat-button>Zapisz odpowiedzi</button>
+                </div>
+            </mat-step>
+        </mat-stepper>
+    </form>
+</mat-dialog-content>

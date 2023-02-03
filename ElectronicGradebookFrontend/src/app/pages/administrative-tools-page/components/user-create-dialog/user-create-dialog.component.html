@@ -1,0 +1,127 @@
+<h2 mat-dialog-title style="text-align: center;">Formularz tworzenia nowego użytkownika</h2>
+<mat-dialog-content style="overflow: hidden">
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+        <mat-form-field style="width: 100%;">
+            <mat-label>Imię</mat-label>
+            <input matInput
+                   autocomplete="off"
+                   [formControl]="firstName"
+                   required
+            >
+            <mat-error *ngIf="firstName.hasError('required')">
+                <strong>Podanie imienia jest wymagane!</strong>
+            </mat-error>
+            <mat-error *ngIf="firstName.hasError('maxlength')">
+                <strong>Imię nie może składać się z więcej niż 20 znaków!</strong>
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field style="width: 100%;" *ngIf="role.value === UserRoleEnum.Pupil">
+            <mat-label>Drugie imię</mat-label>
+            <input matInput
+                   autocomplete="off"
+                   [formControl]="secondName"
+            >
+            <mat-error *ngIf="secondName.hasError('maxlength')">
+                <strong>Drugie imię nie może składać się z więcej niż 20 znaków!</strong>
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field style="width: 100%;">
+            <mat-label>Nazwisko</mat-label>
+            <input matInput
+                   autocomplete="off"
+                   [formControl]="lastName"
+                   required
+            >
+            <mat-error *ngIf="lastName.hasError('required')">
+                <strong>Podanie nazwiska jest wymagane!</strong>
+            </mat-error>
+            <mat-error *ngIf="lastName.hasError('maxlength')">
+                <strong>Nazwisko nie może składać się z więcej niż 30 znaków!</strong>
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field style="width: 100%">
+            <mat-label>Płeć</mat-label>
+            <mat-select [formControl]="gender" required>
+              <mat-option [value]="UserGenderEnum.Male">Mężczyzna</mat-option>
+              <mat-option [value]="UserGenderEnum.Female">Kobieta</mat-option>
+            </mat-select>
+            <mat-error *ngIf="gender.hasError('required')">
+                <strong>Podanie płci jest wymagane!</strong>
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field style="width: 100%;" *ngIf="role.value === UserRoleEnum.Pupil">
+            <input matInput type="date" placeholder="Data urodzenia" [formControl]="birthDate">
+        </mat-form-field>
+        <mat-form-field style="width: 100%">
+            <mat-label>Rola</mat-label>
+            <mat-select [formControl]="role" required>
+              <mat-option [value]="UserRoleEnum.Pupil">Uczeń</mat-option>
+              <mat-option [value]="UserRoleEnum.Parent">Rodzic</mat-option>
+              <mat-option [value]="UserRoleEnum.Teacher">Nauczyciel</mat-option>
+              <mat-option [value]="UserRoleEnum.Admin">Administrator</mat-option>
+            </mat-select>
+            <mat-error *ngIf="role.hasError('required')">
+                <strong>Podanie roli jest wymagane!</strong>
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field style="width: 100%;" *ngIf="role.value === UserRoleEnum.Teacher">
+            <mat-label>Numer telefonu (widoczny dla każdego użytkownika)</mat-label>
+            <input matInput
+                   autocomplete="off"
+                   [formControl]="contactNumber"
+            >
+            <mat-error *ngIf="contactNumber.hasError('pattern')">
+                <strong>Publiczny numer telefonu musi się składać z dokładnie 9 cyfr!</strong>
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field style="width: 100%;" *ngIf="role.value === UserRoleEnum.Teacher">
+            <mat-label>Adres e-mail (widoczny dla każdego użytkownika)</mat-label>
+            <input matInput
+                   autocomplete="off"
+                   [formControl]="contactEmail"
+            >
+            <mat-error *ngIf="contactEmail.hasError('maxlength')">
+                <strong>Publiczny adres e-mail nie może składać się z więcej niż 50 znaków!</strong>
+            </mat-error>
+            <mat-error *ngIf="contactEmail.hasError('email') && !contactEmail.hasError('maxlength')">
+                <strong>To nie jest poprawny adres e-mail!</strong>
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field style="width: 100%;">
+            <mat-label>Adres e-mail (używany do logowania)</mat-label>
+            <input matInput
+                   autocomplete="off"
+                   [formControl]="email"
+                   required
+            >
+            <mat-error *ngIf="email.hasError('required')">
+                <strong>Podanie adresu e-mail służącego do logowania jest wymagane!</strong>
+            </mat-error>
+            <mat-error *ngIf="email.hasError('maxlength')">
+                <strong>Adres e-mail służący do logowania nie może składać się z więcej niż 50 znaków!</strong>
+            </mat-error>
+            <mat-error *ngIf="email.hasError('email') && !email.hasError('maxlength')">
+                <strong>To nie jest poprawny adres e-mail!</strong>
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field style="width: 100%;">
+            <mat-label>Hasło</mat-label>
+            <input matInput
+                   autocomplete="off"
+                   [formControl]="password"
+                   required
+                   [type]="isPasswordVisible ? 'text' : 'password'"
+            >
+            <button type="button" matSuffix mat-icon-button aria-label="Clear" (click)="isPasswordVisible = !isPasswordVisible">
+                <mat-icon>{{ isPasswordVisible ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="password.hasError('required')">
+                <strong>Podanie hasła jest wymagane!</strong>
+            </mat-error>
+            <mat-error *ngIf="password.hasError('pattern')">
+                <strong>Hasło musi się składać z przynajmniej 8 znaków, w tym 1 małej litery, 1 dużej litery, 1 cyfry i 1 znaku specjalnego!</strong>
+            </mat-error>
+        </mat-form-field>
+        <button type="submit" class="btn btn-outline-dark rounded-pill" style="float: right" [disabled]="myForm.invalid">Zapisz</button>
+    </form>
+</mat-dialog-content>

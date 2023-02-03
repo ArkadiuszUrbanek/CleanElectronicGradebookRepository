@@ -1,0 +1,75 @@
+<app-navbar></app-navbar>
+<div class="container">
+    <button type="button" 
+            class="btn btn-dark rounded rounded-pill mt-1 mb-1 bi bi-person-plus"
+            style="float: right"
+            (click)="openUserCreateDialog()"
+    > 
+        Utwórz użytkownika
+    </button>
+    <table class="table table-bordered">
+        <thead>
+          <tr class="noselect table-secondary">
+            <th scope="col" 
+                style="width: 50px; text-align: center"
+                class="pointer text-nowrap"
+                [ngClass]="{ 'active': sortBy === UserSortablePropertiesEnum.Id, 'desc': order === OrderEnum.Descending, 'asc': order === OrderEnum.Ascending}"
+                (click)="sort(UserSortablePropertiesEnum.Id)"
+            >ID</th>
+            <th scope="col" 
+                style="width: 150px; text-align: center"
+                class="pointer text-nowrap"
+                [ngClass]="{ 'active': sortBy === UserSortablePropertiesEnum.FirstName, 'desc': order === OrderEnum.Descending, 'asc': order === OrderEnum.Ascending}"
+                (click)="sort(UserSortablePropertiesEnum.FirstName)"
+            >Imię</th>
+            <th scope="col" 
+                style="width: 150px; text-align: center"
+                class="pointer text-nowrap"
+                [ngClass]="{ 'active': sortBy === UserSortablePropertiesEnum.LastName, 'desc': order === OrderEnum.Descending, 'asc': order === OrderEnum.Ascending}"
+                (click)="sort(UserSortablePropertiesEnum.LastName)"
+            >Nazwisko</th>
+            <th scope="col" style="width: 120px; text-align: center">Rola</th>
+            <th scope="col" style="width: 130px; text-align: center">Konto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td style="text-align: center">{{ user.id }}</td>
+            <td style="text-align: center">{{ user.firstName }}</td>
+            <td style="text-align: center">{{ user.lastName }}</td>
+            <td style="text-align: center" [ngSwitch]="user.role">
+              <ng-container *ngSwitchCase="UserRoleEnum.Admin" [ngSwitch]="user.gender">
+                  <div class="role" *ngSwitchCase="UserGenderEnum.Male">Administrator</div>
+                  <div class="role" *ngSwitchCase="UserGenderEnum.Female">Administratorka</div>
+              </ng-container>
+              <ng-container *ngSwitchCase="UserRoleEnum.Teacher" [ngSwitch]="user.gender">
+                  <div class="role" *ngSwitchCase="UserGenderEnum.Male">Nauczyciel</div>
+                  <div class="role" *ngSwitchCase="UserGenderEnum.Female">Nauczycielka</div>
+              </ng-container>
+              <ng-container *ngSwitchCase="UserRoleEnum.Parent">
+                  <div class="role">Rodzic</div>
+              </ng-container>
+              <ng-container *ngSwitchCase="UserRoleEnum.Pupil" [ngSwitch]="user.gender">
+                  <div class="role" *ngSwitchCase="UserGenderEnum.Male">Uczeń</div>
+                  <div class="role" *ngSwitchCase="UserGenderEnum.Female">Uczennica</div>
+              </ng-container>
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; justify-content: center;">
+                <mat-slide-toggle [disabled]="user.id === userId"
+                                  [checked]="user.isActive"
+                                  (toggleChange)="switchUserAccountActivity(user.id, user.isActive)"
+                >{{ user.isActive ? 'Aktywne' : 'Nieaktywne'}}</mat-slide-toggle>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+    </table>
+    <mat-paginator (page)="handlePageEvent($event)"
+                   [length]="length"
+                   [pageSize]="pageSize"
+                   [pageSizeOptions]="pageSizeOptions"
+                   [pageIndex]="pageIndex"
+    >
+    </mat-paginator>
+</div>

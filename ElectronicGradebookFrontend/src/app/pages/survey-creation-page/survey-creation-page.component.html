@@ -1,0 +1,107 @@
+<div class="container border border-top-0 border-bottom-0 p-0" style="min-height: 100vh">
+    <p class="text-center fs-1 my-0" style="background-color: #aebcad">Kreator ankiety</p>
+    <hr class="mt-0">
+    <form [formGroup]="surveyFormGroup" (ngSubmit)="onSubmit()">
+        <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+            <mat-form-field class="mb-2" style="width: 90%;">
+                <mat-label>Tytuł</mat-label>
+                <input matInput 
+                       formControlName="name"
+                       autocomplete="off"
+                       required
+                >
+                <mat-error *ngIf="name.hasError('maxlength')">
+                    <strong>Tytuł ankiety nie może składać się z więcej niż 50 znaków!</strong>
+                </mat-error>
+                <mat-error *ngIf="name.hasError('required')">
+                    <strong>Tytuł ankiety nie może być pusty!</strong>
+                </mat-error>
+            </mat-form-field>
+            <mat-form-field style="width: 90%;" class="mb-2">
+                <mat-label>Opis</mat-label>
+                <textarea 
+                    matInput
+                    required
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    formControlName="description"
+                    autocomplete="off"
+                ></textarea>
+                <mat-error *ngIf="description.hasError('maxlength')">
+                    <strong>Opis ankiety nie może składać się z więcej niż 500 znaków!</strong>
+                </mat-error>
+                <mat-error *ngIf="description.hasError('required')">
+                    <strong>Opis ankiety nie może być pusty!</strong>
+                </mat-error>
+            </mat-form-field>
+            <mat-form-field style="width: 90%;" class="mb-2">
+                <mat-label>Upoważnione role</mat-label>
+                <mat-select multiple required formControlName="targetedRoles">
+                  <mat-option [value]="RoleEnum.Pupil">Uczeń</mat-option>
+                  <mat-option [value]="RoleEnum.Parent">Rodzic</mat-option>
+                  <mat-option [value]="RoleEnum.Teacher">Nauczyciel</mat-option>
+                </mat-select>
+                <mat-error *ngIf="targetedRoles.hasError('required')">
+                    <strong>Ankieta musi być skierowana do co najmniej jednej grupy użytkowników!</strong>
+                </mat-error>
+            </mat-form-field>
+            <mat-form-field style="width: 90%;">
+                <input matInput required type="datetime-local" formControlName="expirationDate" placeholder="Data i godzina wygaśnięcia">
+                <mat-error *ngIf="expirationDate.hasError('required')">
+                    <strong>Podanie daty i godziny wygaśnięcia ankiety jest wymagane!</strong>
+                </mat-error>
+                <mat-error *ngIf="expirationDate.hasError('dateValidator')">
+                    <strong>Data i godzina wygaśnięcia ankiety musi pochodzić z przyszłości!</strong>
+                </mat-error>
+            </mat-form-field>
+        </div>
+        <hr>
+        <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+        <ul class="list-unstyled" style="width: 90%">
+            <li formArrayName="questions" *ngFor="let question of questions.controls; let questionIndex = index" class="mt-2">
+                <ng-container [formGroupName]="questionIndex">
+                    <div class="d-flex align-items-center" >
+                        <mat-form-field class="me-2 mb-2" style="width: 100%;">
+                            <mat-label>Pytanie</mat-label>
+                            <input matInput required formControlName="contents">
+                            <mat-error *ngIf="question.get('contents')?.hasError('required')">
+                                <strong>Treść pytania nie może być pusta!</strong>
+                            </mat-error>
+                            <mat-error *ngIf="question.get('contents')?.hasError('maxlength')">
+                                <strong>Treść pytania nie może składać się z więcej niż 100 znaków!</strong>
+                            </mat-error>
+                        </mat-form-field>
+                        <button type="button" (click)="removeQuestion(questionIndex)" mat-mini-fab class="bg-danger"><mat-icon>remove</mat-icon></button>
+                    </div>
+                    <ul>
+                        <li formArrayName="answers" *ngFor="let answer of questionAnswers(questionIndex).controls; let answerIndex = index" class="d-flex align-items-center">
+                            <ng-container [formGroupName]="answerIndex">
+                                <mat-radio-button *ngIf="question.value.type === QuestionTypeEnum.SingleChoice" disabled="true" style="width: 30px"></mat-radio-button>
+                                <mat-checkbox *ngIf="question.value.type === QuestionTypeEnum.MultipleChoice" disabled="true" style="width: 30px"></mat-checkbox>
+                                <mat-form-field class="me-2" style="width: 100%">
+                                    <mat-label>Odpowiedź</mat-label>
+                                    <input matInput required formControlName="contents">
+                                    <mat-error *ngIf="answer.get('contents')?.hasError('required')">
+                                        <strong>Treść odpowiedzi nie może być pusta!</strong>
+                                    </mat-error>
+                                    <mat-error *ngIf="answer.get('contents')?.hasError('maxlength')">
+                                        <strong>Treść odpowiedzi nie może składać się z więcej niż 50 znaków!</strong>
+                                    </mat-error>
+                                </mat-form-field>
+                                <button type="button" (click)="removeAnswer(questionIndex, answerIndex)" mat-mini-fab class="bg-danger"><mat-icon>remove</mat-icon></button>
+                            </ng-container>
+                        </li>
+                        <button type="button" (click)="addAnswer(questionIndex)" mat-button class="rounded-5 mt-2" style="border: dashed; border-width: 1px;">Dodaj odpowiedź</button>
+                    </ul>
+                </ng-container>
+            </li>
+        </ul>
+    </div>
+        <button type="button" mat-button [matMenuTriggerFor]="menu" class="rounded-5" style="margin-left: 5%; border: dashed; border-width: 1px;">Dodaj pytanie</button>
+        <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="addSingleChoiceQuestion()"><mat-icon>radio_button_checked</mat-icon>Jednokrotnego wyboru</button>
+            <button mat-menu-item (click)="addMultipleChoiceQuestion()"><mat-icon>check_box</mat-icon>Wielokrotnego wyboru</button>
+        </mat-menu>
+        <button type="submit" class="btn btn-dark rounded rounded-pill" style="margin-right: 5%; float: right" [disabled]="surveyFormGroup.invalid">Zapisz</button>
+    </form>
+</div>

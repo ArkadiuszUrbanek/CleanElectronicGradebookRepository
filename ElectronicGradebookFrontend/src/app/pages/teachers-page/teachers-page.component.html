@@ -1,0 +1,91 @@
+<app-navbar></app-navbar>
+<div class="container">
+    <mat-form-field class="my-3" style="width: 70px; margin-bottom: -1.25em; align-self: flex-start;">
+        <mat-label>Klasa</mat-label>
+        <mat-select [ngModel]="selectedClassId" (ngModelChange)="displayTeachers($event)" required>
+          <mat-option *ngFor="let class of classes" [value]="class.id">
+            {{ class.name }}
+          </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <ng-container *ngFor="let teacher of teachers; let isLast = last; let i = index">
+      <div class="d-flex flex-column align-items-center">
+        <p style="margin: 0">Imię i nazwisko: {{ teacher.firstName }} {{ teacher.lastName }}</p>
+        <div *ngIf="currentlyEditedPhoneNumber === undefined || currentlyEditedPhoneNumber !== i"
+             style="display: flex; flex-direction: row"
+        >
+          <p class="me-1" style="margin-top: auto; margin-bottom: auto;">Numer telefonu: {{ teacher.contactNumber ? formatPhoneNumber(teacher.contactNumber) : 'Nie podano informacji' }}</p>
+          <button *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher && userId === teacher.id" 
+                  style="flex-shrink: 0;" 
+                  class="btn btn-warning rounded-pill bi-pencil-square" 
+                  type="button"
+                  (click)="enterPhoneNumberEditMode(i, teacher.contactNumber)"
+          >
+            Edytuj
+          </button>
+        </div>
+        <div *ngIf="currentlyEditedPhoneNumber === i"
+             style="display: flex; flex-direction: row"
+        >
+          <label style="align-self: center" class="me-1">Numer telefonu: </label>
+          <input [formControl]="phoneNumberControl"
+                 type="text"
+                 class="me-1"
+                 style="align-self: center"
+          >
+          <button style="flex-shrink: 0;" 
+                  class="btn btn-success rounded-pill bi bi-save me-1" 
+                  type="button"
+                  [disabled]="phoneNumberControl.invalid"
+                  (click)="savePhoneNumber(teacher.id, teacher.contactEmail)"
+          > 
+            Zapisz
+          </button>
+          <button style="flex-shrink: 0;" 
+                  class="btn btn-danger rounded-pill bi-x-circle" 
+                  type="button"
+                  (click)="cancelPhoneNumberEditMode()"
+          > Anuluj</button>
+        </div>
+        <div *ngIf="currentlyEditedEmailAddress === undefined || currentlyEditedEmailAddress !== i"
+             style="display: flex; flex-direction: row"
+             [class]="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher && userId === teacher.id ? 'mt-1' : null"
+        >
+          <p class="me-1" style="margin-top: auto; margin-bottom: auto;">Adres email: {{ teacher.contactEmail ?? 'Nie podano informacji' }}</p>
+          <button *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher && userId === teacher.id" 
+                  style="flex-shrink: 0;"
+                  class="btn btn-warning rounded-pill bi-pencil-square"
+                  type="button"
+                  (click)="enterEmailAddressEditMode(i, teacher.contactEmail)"
+          >
+            Edytuj
+          </button>
+        </div>
+        <div *ngIf="currentlyEditedEmailAddress === i" 
+             style="display: flex; flex-direction: row"
+             [class]="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher && userId === teacher.id ? 'mt-1' : null"
+        >
+          <label style="flex-shrink: 0; margin-top: auto; margin-bottom: auto;" class="me-1" >Adres email: </label>
+          <input [formControl]="emailAddressControl" type="email" class="me-1" style="align-self: center">
+          <button style="flex-shrink: 0;" 
+                  class="btn btn-success rounded-pill bi bi-save me-1"
+                  type="button"
+                  [disabled]="emailAddressControl.invalid"
+                  (click)="saveEmailAddress(teacher.id, teacher.contactNumber)"
+          > 
+            Zapisz
+          </button>
+          <button style="flex-shrink: 0;" 
+                  class="btn btn-danger rounded-pill bi-x-circle" 
+                  type="button"
+                  (click)="cancelEmailAddressEditMode()"
+          > Anuluj</button>
+        </div>
+        <p style="margin: 0">Nauczane przedmioty:</p>
+        <ul>
+            <li *ngFor="let subject of teacher.subjectsTaught">{{ subject.name }}</li>
+        </ul>
+      </div>
+      <hr *ngIf="!isLast">
+    </ng-container>
+</div>

@@ -1,0 +1,68 @@
+<app-navbar></app-navbar>
+<app-dialog></app-dialog>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-8 offset-2">
+            <table *ngFor="let announcement of announcements" class="table table-bordered mt-4" #announcementsTemplateRef>
+                <thead class="bg-light">
+                    <tr>
+                        <th scope="row" colspan="2" class="px-0">
+                            <div style="position: relative; display: flex; flex-direction: row; justify-content: center; align-items: center;">
+                                {{announcement.title}}
+                                <div *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher" class="btn-group" style="position: absolute; right: 0;">
+                                    <button type="button" class="btn btn-warning bi bi-pencil-square text-dark text-start rounded-pill mx-1" (click)="showAnnouncementEditingModal(announcement)"> Edytuj</button>
+                                    <button type="button" class="btn btn-danger bi bi-dash-square text-dark text-start rounded-pill" (click)="showConfirmationModal(announcement.id)"> Usuń</button>
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row" style="width: 121px">Data dodania</th>
+                        <td>{{ announcement.creationDate | date: 'longDate':'':'pl' }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row" style="width: 121px">Dodane przez</th>
+                        <td>{{ announcement.author.firstName }} {{ announcement.author.lastName }}</td>
+                    </tr>
+                    <tr *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher">
+                        <th scope="row" style="width: 158px">Upoważnione role</th>
+                        <td>
+                            <ul *ngFor="let role of announcement.authorizedRoles.slice().reverse()" [ngSwitch]="role" style="list-style: none; margin: 0; padding: 0">
+                                <li *ngSwitchCase="UserRoleEnum.Admin">Administratorzy</li>
+                                <li *ngSwitchCase="UserRoleEnum.Teacher">Nauczyciele</li>
+                                <li *ngSwitchCase="UserRoleEnum.Parent">Rodzice</li>
+                                <li *ngSwitchCase="UserRoleEnum.Pupil">Uczniowie</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row" style="width: 121px">Treść</th>
+                        <td style="text-align: justify; white-space: pre-wrap;">{{ announcement.contents }}</td>
+                    </tr>
+                </tbody>
+                <tfoot class="bg-light">
+                    <tr>
+                        <th scope="col" colspan="2" class="p-2"></th>
+                    </tr>
+                </tfoot> 
+            </table>
+        </div>
+        <div class="col-2 d-flex justify-content-center">
+            <div *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher" style="position: fixed; bottom: 50px;">
+                <button 
+                    type="button" 
+                    class="btn btn-outline-dark"
+                    style="border-radius: 50%; width: 50px; height: 50px;"
+                    (click)="showAnnouncementAddingModal()"
+                    matTooltip="Dodaj"
+                    matTooltipPosition="above"
+                >
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

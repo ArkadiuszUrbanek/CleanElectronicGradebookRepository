@@ -1,0 +1,66 @@
+<h2 mat-dialog-title style="text-align: center;">{{ data.title }}</h2>
+<mat-dialog-content style="overflow: hidden">
+  <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+    <mat-form-field style="width: 100%">
+      <mat-label>Przedmiot</mat-label>
+      <input type="text"
+             spellcheck="false"
+             [matAutocomplete]="subjectAutocomplete"
+             matInput
+             [formControl]="subject"
+             required>
+      <button mat-button *ngIf="subject.value" matSuffix mat-icon-button aria-label="Clear" (click)="subject.setValue('')">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-autocomplete #subjectAutocomplete="matAutocomplete" [displayWith]="getSubjectName">
+        <mat-option *ngFor="let subject of filteredSubjects | async" [value]="subject">
+          {{ subject.name }}
+        </mat-option>
+      </mat-autocomplete>
+      <mat-error *ngIf="subject.hasError('invalidAutocompleteObject')">
+          <strong>Nie wybrano przedmiotu z listy dostępnych przedmiotów!</strong>
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field style="width: 100%">
+        <mat-label>Nauczyciel</mat-label>
+        <input type="text"
+               spellcheck="false"
+               [matAutocomplete]="teacherAutocomplete"
+               matInput
+               [formControl]="teacher"
+               required>
+        <button mat-button *ngIf="teacher.value" matSuffix mat-icon-button aria-label="Clear" (click)="teacher.setValue('')">
+          <mat-icon>close</mat-icon>
+        </button>
+        <mat-autocomplete #teacherAutocomplete="matAutocomplete" [displayWith]="getTeacherName">
+            <mat-option *ngFor="let teacher of filteredTeachers | async" [value]="teacher">
+                {{ teacher.firstName + ' ' + teacher.lastName }}
+            </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="teacher.hasError('invalidAutocompleteObject')">
+          <strong>Nie wybrano nauczyciela z listy dostępnych nauczycieli!</strong>
+        </mat-error>
+    </mat-form-field>
+    <mat-form-field style="width: 100%">
+        <mat-label>Numer sali</mat-label>
+        <input type="text"
+               spellcheck="false"
+               [matAutocomplete]="classroomAutocomplete"
+               matInput
+               [formControl]="classroom"
+               required>
+        <button mat-button *ngIf="classroom.value" matSuffix mat-icon-button aria-label="Clear" (click)="classroom.setValue('')">
+          <mat-icon>close</mat-icon>
+        </button>
+        <mat-autocomplete #classroomAutocomplete="matAutocomplete" [displayWith]="getClassroomName">
+          <mat-option *ngFor="let classroom of filteredClassrooms | async" [value]="classroom">
+            {{ classroom.id }}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="classroom.hasError('invalidAutocompleteObject')">
+          <strong>Nie wybrano numeru sali z listy dostępnych numerów sal!</strong>
+        </mat-error>
+    </mat-form-field>
+    <button class="btn btn-outline-dark rounded-pill" style="float: right" type="submit" [disabled]="myForm.invalid">Zapisz</button>
+  </form>
+</mat-dialog-content>

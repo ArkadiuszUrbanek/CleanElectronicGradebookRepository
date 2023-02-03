@@ -1,0 +1,105 @@
+<div class="vh-100 vw-100">
+    <div class="d-flex flex-column h-100">
+        <app-navbar></app-navbar>
+        <div class="card flex-grow-1">
+            <div class="row g-0 h-100">
+                <div class="d-flex flex-column h-100" style="width: 210px; border-right: 1px solid #EAEAEA;">
+                    <div class="flex-shrink-0 d-flex border rounded-pill align-items-center m-1 px-2">
+                        <i class="bi bi-search"></i>
+                        <input 
+                            type="text" 
+                            class="form-control shadow-none border border-0 bg-transparent ms-1 p-0" 
+                            placeholder="Wyszukaj użytkownika"
+                            [ngModel]="searchPhrase"
+                            (ngModelChange)="seachInputChanged($event)"
+                        />
+                    </div>
+                    <ul 
+                        class="flex-grow-1 list-unstyled chat-list m-0"
+                        [ngClass]="{ 'd-flex justify-content-center align-items-center': isUsersListInitiallyLoading }"
+                        infiniteScroll
+                        [infiniteScrollThrottle]="150"
+                        [scrollWindow]="false"
+                        (scrolled)="usersListScrolledDown()"
+                    >
+                        <hr class="m-0" *ngIf="users.length > 0">
+                        <ng-container *ngFor="let user of users">
+                            <li (click)="viewMessages(user)" [ngClass]="{ 'active': user.id === selectedUser?.id }">
+                                <div class="name">{{ user.firstName }} {{ user.lastName }}</div>
+                                <ng-container [ngSwitch]="user.role">
+                                    <ng-container *ngSwitchCase="UserRoleEnum.Admin" [ngSwitch]="user.gender">
+                                        <div class="role" *ngSwitchCase="UserGenderEnum.Male">Administrator</div>
+                                        <div class="role" *ngSwitchCase="UserGenderEnum.Female">Administratorka</div>
+                                    </ng-container>
+                                    <ng-container *ngSwitchCase="UserRoleEnum.Teacher" [ngSwitch]="user.gender">
+                                        <div class="role" *ngSwitchCase="UserGenderEnum.Male">Nauczyciel</div>
+                                        <div class="role" *ngSwitchCase="UserGenderEnum.Female">Nauczycielka</div>
+                                    </ng-container>
+                                    <ng-container *ngSwitchCase="UserRoleEnum.Parent">
+                                        <div class="role">Rodzic</div>
+                                    </ng-container>
+                                    <ng-container *ngSwitchCase="UserRoleEnum.Pupil" [ngSwitch]="user.gender">
+                                        <div class="role" *ngSwitchCase="UserGenderEnum.Male">Uczeń</div>
+                                        <div class="role" *ngSwitchCase="UserGenderEnum.Female">Uczennica</div>
+                                    </ng-container>
+                                </ng-container>
+                            </li>
+                            <hr class="m-0">
+                        </ng-container>
+                        <div *ngIf="isUsersListSpinnerVisible" class="d-flex justify-content-center align-items-center m-2">
+                            <strong>Ładowanie...</strong>
+                            <div class="spinner-border ms-2" role="status"></div>
+                        </div>
+                    </ul>
+                </div>
+                <div *ngIf="selectedUser" class="col d-flex flex-column h-100" >
+                    <div class="flex-shrink-0" style="border-bottom: 2px solid #F4F7F6;">
+                        <h6 class="text-center p-1 m-0">Rozmowa z użytkownikiem {{selectedUser.firstName}} {{selectedUser.lastName}}</h6>
+                    </div>
+                    <div 
+                        class="flex-grow-1 messages" 
+                        style="border-bottom: 2px solid #F4F7F6;"
+                        #messagesScroll
+                        infiniteScroll
+                        [alwaysCallback]="true"
+                        [infiniteScrollUpDistance]="2"
+                        [infiniteScrollThrottle]="0"
+                        [scrollWindow]="false"
+                        (scrolledUp)="messagesScrolledUp()"
+                    >
+                        <ng-container *ngFor="let message of messages; let i = index" [ngSwitch]="getDateDisplayFormat(messages[i], i)">
+                            <!--27 września 2021-->
+                            <div *ngSwitchCase="0" class="separator">{{ message.timestamp | date: 'longDate':'':'pl' }}</div>
+                            <!--27 września (w domyśle 2022)-->
+                            <div *ngSwitchCase="1" class="separator">{{ message.timestamp | date: 'd MMMM':'':'pl' }}</div>
+                            <!--Dzisiaj-->
+                            <div *ngSwitchCase="2" class="separator">Dzisiaj</div>
+                            <div class="msg" [ngClass]="{ 'msg-me': message.senderId === userId, 'msg-them': message.senderId !== userId }">
+                                <div [ngClass]="{'time-me': message.senderId === userId, 'time-them': message.senderId !== userId }">{{ message.timestamp | date: 'shortTime':'':'pl' }}</div>
+                                <blockquote>{{ message.text }}</blockquote>
+                                <div [ngClass]="{'triangle-me': message.senderId === userId, 'triangle-them': message.senderId !== userId }"></div>
+                            </div>
+                        </ng-container>
+                    </div>
+                    <form 
+                        #messageForm="ngForm"
+                        (ngSubmit)="sendMessage()"
+                        class="flex-shrink-0 d-flex justify-content-center align-items-center p-1">
+                        <textarea 
+                            #textArea 
+                            class="form-control shadow-none border border-1 rounded-5 me-1"
+                            placeholder="Twoja wiadomość" 
+                            style="resize: none; overflow: hidden"
+                            (input)="resizeTextArea()"
+                            [(ngModel)]="messageText"
+                            name="message"
+                            maxlength="500"
+                            required
+                        ></textarea>
+                        <button type="submit" class="btn btn-outline-dark rounded-circle align-self-end" [disabled]="messageForm.invalid"><i class="bi bi-send" style="font-size: 20px"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,23 @@
+.bg-lesson-cancelled {
+    background-color: rgb(243, 94, 94);
+}
+
+.bg-dark-lesson-cancelled {
+    background-color: rgb(230, 77, 77);
+}
+
+.bg-lesson-substitution {
+    background-color: rgb(251, 230, 92);
+}
+
+.bg-dark-lesson-substitution {
+    background-color: rgb(223, 202, 68);
+}
+
+.bg-lesson-as-planned {
+    background-color: rgb(102, 179, 82);
+}
+
+.bg-dark-lesson-as-planned {
+    background-color: rgb(74, 145, 57);
+}

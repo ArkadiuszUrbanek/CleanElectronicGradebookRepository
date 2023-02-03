@@ -1,0 +1,274 @@
+<app-navbar></app-navbar>
+<div class="container">
+  <form [formGroup]="myForm">
+    <div class="row-12"
+         *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher"
+    >
+      <mat-form-field style="width: 70px;">
+        <mat-label>Klasa</mat-label>
+        <mat-select formControlName="class" required>
+          <mat-option *ngFor="let class of classes" [value]="class.id">
+            {{ class.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="row-12"
+         *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher"
+    >
+      <mat-form-field style="width: 210px">
+        <mat-label>Uczeń</mat-label>
+        <input type="text"
+               spellcheck="false"
+               [matAutocomplete]="pupilAutocomplete"
+               matInput
+               formControlName="pupil"
+               required>
+        <button mat-button *ngIf="pupil.value" matSuffix mat-icon-button aria-label="Clear" (click)="pupil.setValue('')">
+          <mat-icon>close</mat-icon>
+        </button>
+        <mat-autocomplete #pupilAutocomplete="matAutocomplete" [displayWith]="getPupilName">
+            <mat-option *ngFor="let pupil of filteredPupils" [value]="pupil">
+              {{pupil.firstName}} {{pupil.lastName}}
+            </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="pupil.hasError('invalidAutocompleteObject')">
+          <strong>Nie wybrano ucznia z listy uczniów!</strong>
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <div class="row-12"
+         *ngIf="userRole === UserRoleEnum.Parent"
+    >
+      <mat-form-field style="width: 200px;">
+        <mat-label>Dziecko</mat-label>
+        <mat-select formControlName="child" required>
+          <mat-option *ngFor="let pupil of pupils" [value]="pupil.id">
+            {{pupil.firstName}} {{pupil.lastName}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="row-12 mb-2">
+      <label>Widok:</label>
+        <mat-radio-group class="radio-group m-0"
+                         formControlName="marksMembership">
+          <mat-radio-button [value]="ViewEnum.FirstSemester">Okres I</mat-radio-button>
+          <mat-radio-button [value]="ViewEnum.SecondSemester">Okres II</mat-radio-button>
+          <mat-radio-button [value]="ViewEnum.SchoolYearEnd">Koniec roku</mat-radio-button>
+        </mat-radio-group>
+    </div>
+  </form>
+
+  <ng-container *ngIf="myForm.valid">
+    <ng-container *ngIf="marksMembership.value === ViewEnum.FirstSemester || marksMembership.value === ViewEnum.SecondSemester" [ngTemplateOutlet]="semester"></ng-container>
+    <ng-container *ngIf="marksMembership.value === ViewEnum.SchoolYearEnd" [ngTemplateOutlet]="schoolYear"></ng-container>
+  </ng-container>
+
+  <ng-template #semester>
+    <table class="table table-bordered">
+      <thead style="text-align: center">
+        <tr>
+          <th rowspan="2" style="vertical-align: middle">Przedmiot</th>
+          <th *ngIf="marksMembership.value === ViewEnum.FirstSemester" colspan="4" scope="colgroup">Okres I</th>
+          <th *ngIf="marksMembership.value === ViewEnum.SecondSemester" colspan="4" scope="colgroup">Okres II</th>
+        </tr>
+        <tr>
+          <th scope="col">Oceny bieżące</th>
+          <th scope="col">Średnia ważona z ocen bieżących</th>
+          <th scope="col">Proponowana ocena śródroczna</th>
+          <th scope="col">Ocena śródroczna</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let subjectMarks of subjectsMarks; let i = index">
+          <td style="vertical-align: middle;">
+            <div class="d-flex justify-content-conter align-items-center" style="column-gap: 5px;">
+              {{ subjectMarks.subject.name }}
+              <i *ngIf="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher" 
+                 class="bi bi-bar-chart-line-fill" 
+                 style="margin-left: auto; margin-right: 0; cursor: pointer;"
+                 matTooltip="Pokaż wykres średniej ważonej ocen bieżących"
+                 matTooltipPosition="below"
+                 (click)="showChart(subjectMarks.subject.id)"
+              ></i>
+            </div>
+          </td>
+          <td style="vertical-align: middle">
+            <div class="d-flex justify-content-conter align-items-center">
+              <div style="display: flex; column-gap: 5px; row-gap: 5px; flex-wrap: wrap; margin-right: 5px">
+                <div *ngFor="let partialMark of (marksMembership.value === ViewEnum.FirstSemester ? subjectMarks.firstSemesterMarks.partialMarks : subjectMarks.secondSemesterMarks.partialMarks)"
+                     style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 26px; height: 26px;"
+                     [ngStyle]="getPartialMarkColor(partialMark.category!)"
+                     [style.cursor]="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher ? 'pointer' : 'auto'"
+                     triggers="mouseenter:mouseleave"
+                     [ngbPopover]="popoverContent"
+                     (click)="editOrDeleteMark(partialMark.id, MarkTypeEnum.Partial, partialMark.value, partialMark.weight, partialMark.category)"
+                >
+                  {{ getMarkSymbol(partialMark.value) }}
+                  <ng-template #popoverContent>
+                    <p class="m-0">Kategoria: {{ getPartialMarkCategoryName(partialMark.category!) }}</p>
+                    <p class="m-0">Data wystawienia: {{ partialMark.issueDate | date: 'longDate':'':'pl' }}</p>
+                    <p class="m-0">Godzina wystawienia: {{ partialMark.issueDate | date: 'mediumTime':'':'pl' }}</p>
+                    <p class="m-0">Wystawca: {{ partialMark.issuer.firstName }} {{ partialMark.issuer.lastName }}</p>
+                    <p class="m-0">Waga: {{ partialMark.weight }}</p>
+                  </ng-template>
+                </div>
+              </div>
+              <button *ngIf="(userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher)"
+                      class="btn btn btn-outline-dark p-0 flex-shrink-0 "
+                      style="border-radius: 50%; width: 26px; height: 26px; margin-left: auto;"
+                      matTooltip="Dodaj ocenę bieżącą"
+                      matTooltipPosition="right"
+                      (click)="addMark(subjectMarks.subject.id, marksMembership.value, MarkTypeEnum.Partial)"
+              >
+                <i class="bi bi-plus-lg"></i>
+              </button>
+            </div>
+          </td>
+          <td class="text-center" style="vertical-align: middle;">{{ marksMembership.value === ViewEnum.FirstSemester ? subjectMarks.firstSemesterMarks.averageFromPartialMarks : subjectMarks.secondSemesterMarks.averageFromPartialMarks }}</td>
+          <td class="text-center align-middle">
+            <div *ngIf="marksMembership.value === ViewEnum.FirstSemester && subjectMarks.firstSemesterMarks.proposedSemestralMark?.value" 
+                 style="margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 26px; height: 26px; background-color: white; border: solid black 1px"
+                 [style.cursor]="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher ? 'pointer' : 'auto'"
+                 triggers="mouseenter:mouseleave"
+                 [ngbPopover]="popoverContent"
+                 (click)="editOrDeleteMark(subjectMarks.firstSemesterMarks.proposedSemestralMark!.id,
+                                           MarkTypeEnum.ProposedSemestral,
+                                           subjectMarks.firstSemesterMarks.proposedSemestralMark!.value)"
+            >
+              {{ getMarkSymbol(subjectMarks.firstSemesterMarks.proposedSemestralMark!.value) }}
+              <ng-template #popoverContent>
+                <p class="m-0">Data wystawienia: {{ subjectMarks.firstSemesterMarks.proposedSemestralMark!.issueDate | date: 'longDate':'':'pl' }}</p>
+                <p class="m-0">Godzina wystawienia: {{ subjectMarks.firstSemesterMarks.proposedSemestralMark!.issueDate | date: 'mediumTime':'':'pl' }}</p>
+                <p class="m-0">Wystawca: {{ subjectMarks.firstSemesterMarks.proposedSemestralMark!.issuer.firstName }} {{ subjectMarks.firstSemesterMarks.proposedSemestralMark!.issuer.lastName }}</p>
+              </ng-template>
+            </div>
+            <div *ngIf="marksMembership.value === ViewEnum.SecondSemester && subjectMarks.secondSemesterMarks.proposedSemestralMark?.value" 
+                 style="margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 26px; height: 26px; background-color: white; border: solid black 1px"
+                 [style.cursor]="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher ? 'pointer' : 'auto'"
+                 triggers="mouseenter:mouseleave"
+                 [ngbPopover]="popoverContent"
+                 (click)="editOrDeleteMark(subjectMarks.secondSemesterMarks.proposedSemestralMark!.id,
+                                           MarkTypeEnum.ProposedSemestral,
+                                           subjectMarks.secondSemesterMarks.proposedSemestralMark!.value)"
+            >
+              {{ getMarkSymbol(subjectMarks.secondSemesterMarks.proposedSemestralMark!.value) }}
+              <ng-template #popoverContent>
+                <p class="m-0">Data wystawienia: {{ subjectMarks.secondSemesterMarks.proposedSemestralMark!.issueDate | date: 'longDate':'':'pl' }}</p>
+                <p class="m-0">Godzina wystawienia: {{ subjectMarks.secondSemesterMarks.proposedSemestralMark!.issueDate | date: 'mediumTime':'':'pl' }}</p>
+                <p class="m-0">Wystawca: {{ subjectMarks.secondSemesterMarks.proposedSemestralMark!.issuer.firstName }} {{ subjectMarks.secondSemesterMarks.proposedSemestralMark!.issuer.lastName }}</p>
+              </ng-template>
+            </div>
+            <button *ngIf="(marksMembership.value === ViewEnum.FirstSemester && subjectMarks.firstSemesterMarks.proposedSemestralMark?.value === null) &&
+                           (userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher) ||
+                           (marksMembership.value === ViewEnum.SecondSemester && subjectMarks.secondSemesterMarks.proposedSemestralMark?.value === null) &&
+                           (userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher)"
+                    class="btn btn btn-outline-dark p-0"
+                    style="border-radius: 50%; width: 26px; height: 26px"
+                    matTooltip="Dodaj proponowaną ocenę śródroczną"
+                    matTooltipPosition="right"
+                    (click)="addMark(subjectMarks.subject.id, marksMembership.value, MarkTypeEnum.ProposedSemestral)"
+            >
+              <i class="bi bi-plus-lg"></i>
+            </button>
+          </td>
+          <td class="text-center align-middle;">
+            <div *ngIf="marksMembership.value === ViewEnum.FirstSemester && subjectMarks.firstSemesterMarks.semestralMark?.value" 
+                 style="margin: 0 auto;  display: flex; flex-direction: column; align-items: center; justify-content: center; width: 26px; height: 26px; background-color: white; border: solid black 1px"
+                 [style.cursor]="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher ? 'pointer' : 'auto'"
+                 triggers="mouseenter:mouseleave"
+                 [ngbPopover]="popoverContent"
+                 (click)="editOrDeleteMark(subjectMarks.firstSemesterMarks.semestralMark!.id,
+                                           MarkTypeEnum.Semestral,
+                                           subjectMarks.firstSemesterMarks.semestralMark!.value)"
+            >
+              {{ getMarkSymbol(subjectMarks.firstSemesterMarks.semestralMark!.value) }}
+              <ng-template #popoverContent>
+                <p class="m-0">Data wystawienia: {{ subjectMarks.firstSemesterMarks.semestralMark!.issueDate | date: 'longDate':'':'pl' }}</p>
+                <p class="m-0">Godzina wystawienia: {{ subjectMarks.firstSemesterMarks.semestralMark!.issueDate | date: 'mediumTime':'':'pl' }}</p>
+                <p class="m-0">Wystawca: {{ subjectMarks.firstSemesterMarks.semestralMark!.issuer.firstName }} {{ subjectMarks.firstSemesterMarks.semestralMark!.issuer.lastName }}</p>
+              </ng-template>
+            </div>
+            <div *ngIf="marksMembership.value === ViewEnum.SecondSemester && subjectMarks.secondSemesterMarks.semestralMark?.value" 
+                 style="margin: 0 auto;  display: flex; flex-direction: column; align-items: center; justify-content: center; width: 26px; height: 26px; background-color: white; border: solid black 1px"
+                 [style.cursor]="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher ? 'pointer' : 'auto'"
+                 triggers="mouseenter:mouseleave"
+                 [ngbPopover]="popoverContent"
+                 (click)="editOrDeleteMark(subjectMarks.secondSemesterMarks.semestralMark!.id,
+                                           MarkTypeEnum.Semestral,
+                                           subjectMarks.secondSemesterMarks.semestralMark!.value)"
+            >
+              {{ getMarkSymbol(subjectMarks.secondSemesterMarks.semestralMark!.value) }}
+              <ng-template #popoverContent>
+                <p class="m-0">Data wystawienia: {{ subjectMarks.secondSemesterMarks.semestralMark!.issueDate | date: 'longDate':'':'pl' }}</p>
+                <p class="m-0">Godzina wystawienia: {{ subjectMarks.secondSemesterMarks.semestralMark!.issueDate | date: 'mediumTime':'':'pl' }}</p>
+                <p class="m-0">Wystawca: {{ subjectMarks.secondSemesterMarks.semestralMark!.issuer.firstName }} {{ subjectMarks.secondSemesterMarks.semestralMark!.issuer.lastName }}</p>
+              </ng-template>
+            </div>
+            <button *ngIf="(marksMembership.value === ViewEnum.FirstSemester && subjectMarks.firstSemesterMarks.semestralMark?.value === null) &&
+                           (userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher) ||
+                           (marksMembership.value === ViewEnum.SecondSemester && subjectMarks.secondSemesterMarks.semestralMark?.value === null) &&
+                           (userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher)"
+                    class="btn btn btn-outline-dark p-0"
+                    style="border-radius: 50%; width: 26px; height: 26px"
+                    matTooltip="Dodaj ocenę śródroczną"
+                    matTooltipPosition="right"
+                    (click)="addMark(subjectMarks.subject.id, marksMembership.value, MarkTypeEnum.Semestral)"
+            >
+              <i class="bi bi-plus-lg"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </ng-template>
+
+  <ng-template #schoolYear>
+    <table class="table table-bordered">
+      <thead style="text-align: center">
+        <tr>
+          <th rowspan="2" style="vertical-align: middle">Przedmiot</th>
+          <th colspan="2" scope="colgroup">Koniec roku</th>
+        </tr>
+        <tr>
+          <th scope="col">Średnia z ocen śródrocznych</th>
+          <th scope="col">Ocena roczna</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let subjectMarks of subjectsMarks">
+          <td>{{ subjectMarks.subject.name }}</td>
+          <td class="text-center">{{ subjectMarks.yearlymarks.averageFromSemestralMarks }}</td>
+          <td class="text-center align-middle">
+            <div *ngIf="subjectMarks.yearlymarks.finalMark?.value" 
+                 style="margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 26px; height: 26px; background-color: white; border: solid black 1px"
+                 [style.cursor]="userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher ? 'pointer' : 'auto'"
+                 triggers="mouseenter:mouseleave"
+                 [ngbPopover]="popoverContent"
+                 (click)="editOrDeleteMark(subjectMarks.yearlymarks.finalMark!.id,
+                                           MarkTypeEnum.Final,
+                                           subjectMarks.yearlymarks.finalMark!.value)"
+            >
+              {{ getMarkSymbol(subjectMarks.yearlymarks.finalMark!.value) }}
+              <ng-template #popoverContent>
+                <p class="m-0">Data wystawienia: {{ subjectMarks.yearlymarks.finalMark!.issueDate | date: 'longDate':'':'pl' }}</p>
+                <p class="m-0">Godzina wystawienia: {{ subjectMarks.yearlymarks.finalMark!.issueDate | date: 'mediumTime':'':'pl' }}</p>
+                <p class="m-0">Wystawca: {{ subjectMarks.yearlymarks.finalMark!.issuer.firstName }} {{ subjectMarks.yearlymarks.finalMark!.issuer.lastName }}</p>
+              </ng-template>
+            </div>
+            <button *ngIf="subjectMarks.yearlymarks.finalMark?.value === null && (userRole === UserRoleEnum.Admin || userRole === UserRoleEnum.Teacher)"
+                    class="btn btn btn-outline-dark p-0"
+                    style="border-radius: 50%; width: 26px; height: 26px"
+                    matTooltip="Dodaj ocenę roczną"
+                    matTooltipPosition="right"
+                    (click)="addMark(subjectMarks.subject.id, marksMembership.value, MarkTypeEnum.Final)"
+            >
+              <i class="bi bi-plus-lg"></i>
+            </button>
+          </td>
+        <tr>
+      </tbody>
+    </table>
+  </ng-template>
+</div>

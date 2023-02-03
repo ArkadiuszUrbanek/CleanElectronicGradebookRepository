@@ -1,0 +1,56 @@
+<div class="container border border-top-0 border-bottom-0 p-0" style="min-height: 100vh; ">
+    <p class="text-center fs-1 my-0" style="background-color: #aebcad">Wyniki ankiety</p>
+    <hr class="mt-0">
+    <ng-container *ngIf="surveyStatisticalData !== undefined">
+        <p style="text-align: center; font-weight: bold">{{ surveyStatisticalData.name }}</p>
+        <p style="width: 90%; margin-left: auto; margin-right:auto; text-align: justify; white-space: pre-wrap;">{{ surveyStatisticalData.description }}</p>
+        <hr>
+        <p class="text-center">Liczba użytkowników, którzy wypełnili ankietę / Liczba użytkowników uprawnionych do wzięcia udziału w ankiecie</p>
+        <div class="progress-percentage-wrapper">
+            <div class="progress-percentage ng-cloak">{{ surveyStatisticalData.timesFinished }} / {{ surveyStatisticalData.timesFinished + surveyStatisticalData.timesUnfinished }}</div>
+            <round-progress 
+                [current]="surveyStatisticalData.timesFinished" 
+                [max]="surveyStatisticalData.timesFinished + surveyStatisticalData.timesUnfinished"
+                [color]="'#75a680'"
+                [background]="'#eaeaea'"
+                [radius]="50"
+                [stroke]="15"
+                [semicircle]="false"
+                [rounded]="true"
+                [clockwise]="true"
+                [responsive]="false"
+                [duration]="1500"
+                [animation]="'easeInOutQuart'"
+                [animationDelay]="0"
+            >
+            </round-progress>
+        </div>
+        <hr>
+        <div class="row m-0 p-0 row-eq-height">
+            <ng-container *ngFor="let question of surveyStatisticalData.questions; let i = index;">
+                <div class="col-md-6 col-xl-4 mb-4 d-flex flex-column g-2">
+                    <p 
+                        class="text-center"
+                        style="margin-top: 0; margin-bottom: auto; margin-left: 0; margin-right: 0;"
+                    >Pytanie {{ question.number }}. {{ question.contents }}</p>
+                    <app-chart
+                        [type]="questionsChartsTypes[i]" 
+                        [labels]="questionsAnswersContents[i]" 
+                        [data]="questionsAnswersTimesSelected[i]"
+                        [max]="surveyStatisticalData.timesFinished + surveyStatisticalData.timesUnfinished"
+                    >
+                    </app-chart>
+                    <mat-form-field 
+                        style="width: 90px; margin-top: 0; margin-bottom: 0; margin-left: auto; margin-right: auto;"
+                    >
+                        <mat-label>Typ wykresu</mat-label>
+                        <mat-select matNativeControl [value]="questionsChartsTypes[i]" (selectionChange)="changeChartType($event.value, i)"> 
+                            <mat-option value="pie">Kołowy</mat-option>
+                            <mat-option value="bar">Słupkowy</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </ng-container>
+        </div>
+    </ng-container>
+</div>

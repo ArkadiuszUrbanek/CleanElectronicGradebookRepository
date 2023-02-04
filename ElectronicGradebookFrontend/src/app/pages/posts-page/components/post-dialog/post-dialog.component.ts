@@ -25,7 +25,7 @@ export class PostDialogComponent {
               private formBuilder: FormBuilder) {
     this.myForm = this.formBuilder.group({
       authorizedRoles: [this.data.post.authorizedRoles.length === 0 ? [UserRoleEnum.Admin] : this.data.post.authorizedRoles, Validators.required],
-      contents: [this.data.post.contents, Validators.compose([Validators.maxLength(500), Validators.required])]
+      contents: [this.data.post.contents, Validators.compose([Validators.maxLength(1000), Validators.required])]
     })
   }
 

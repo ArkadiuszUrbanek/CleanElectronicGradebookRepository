@@ -59,7 +59,7 @@ export class PostsPageComponent implements OnInit {
     }
   }
 
-  public timeAgo(time: any): any {
+public timeAgo(time: any): any {
     switch (typeof time) {
       case 'number': break
       case 'string':
@@ -73,10 +73,10 @@ export class PostsPageComponent implements OnInit {
     }
 
     let time_formats = [
-      [1, 'sekundę temu'],
-      [2, 'sekundy temu'],
-      [3, 'sekundy temu'],
-      [4, 'sekundy temu'],
+      [1, '1 sekundę temu', '1 sekundę od teraz'],
+      [2, '2 sekundy temu', '2 sekundy od teraz'],
+      [3, '3 sekundy temu', '3 sekundy od teraz'],
+      [4, '4 sekundy temu', '4 sekundy od teraz'],
       [60, 'sekund', 1],
       [120, '1 minutę temu', '1 minutę od teraz'],
       [180, '2 minuty temu', '2 minuty od teraz'],
@@ -108,8 +108,8 @@ export class PostsPageComponent implements OnInit {
       [2903040000, 'lat', 29030400]
     ]
 
-    var seconds = (+new Date() - time) / 1000, token = 'temu', list_choice = 1
-  
+    let seconds = (+new Date() - time) / 1000, token = 'temu', list_choice = 1
+
     if (seconds == 0) return 'W tym momencie'
     
     if (seconds < 0) {
@@ -124,7 +124,7 @@ export class PostsPageComponent implements OnInit {
         if (typeof format[2] == 'string')
           return format[list_choice]
         else
-          return Math.floor(seconds / format[2]) + ' ' + format[1] + ' ' + token
+          return Math.ceil(seconds / format[2]) + ' ' + format[1] + ' ' + token
       }
     return time
   }

@@ -22,7 +22,7 @@ As part of the project, four user roles were identified: administrator, teacher,
 
 ### 2.2.2. Libraries
 - **Entity Framework Core** – An open-source, cross-platform object-relational mapping (ORM) tool.
-- **Microsoft.EntityFrameworkCore.SqlServer** – An official NuGet package from Microsoft that enables the Entity Framework Core 6 object-relational mapping tool to connect to SQL Server databases.
+- **Microsoft.EntityFrameworkCore.SqlServer** – An official NuGet package from Microsoft that enables the Entity Framework Core object-relational mapping tool to connect to SQL Server databases.
 - **Microsoft.AspNetCore.Authentication.JwtBearer** – An official NuGet package from Microsoft that contains middleware for capturing and validating JWT tokens from HTTP request headers.
 - **Microsoft.AspNetCore.Cors** – An official NuGet package from Microsoft that includes middleware allowing HTTP requests to be sent between different origins.
 - **MailKit** – A NuGet package that includes implementations of SMTP, POP3, and IMAP clients used for sending email messages.

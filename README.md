@@ -1,5 +1,5 @@
 # 1. Project description
-The primary goal of the project was to create a web application that implements functionalities commonly found in electronic gradebooks used by teachers in primary and secondary schools. The list of required functionalities was determined based on an analysis of the three most popular electronic gradebooks in Poland: Vulcan UONET+, Librus Synergia, and MobiDziennik.
+The primary goal of the project was to create a web application that implements functionalities commonly found in electronic gradebooks used by teachers in primary and secondary schools. The list of required functionalities was determined based on an analysis of the three most popular electronic gradebooks in Poland: [Vulcan UONET+](https://uonetplus.vulcan.net.pl/), [Librus Synergia](https://portal.librus.pl/rodzina/synergia/loguj), and [MobiDziennik](https://mobidziennik.pl/logowanie).
 
 ![database](https://github.com/user-attachments/assets/9f6bf502-25ee-4d53-8838-01a075015855)
 ![attendance](https://github.com/user-attachments/assets/6f905cdd-3f26-49a2-aa5d-f3134b1d70db)
